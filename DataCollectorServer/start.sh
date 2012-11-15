@@ -1,3 +1,5 @@
+#!/bin/bash
+
 for i in Downlink Uplink
 do
 	echo "running $i"

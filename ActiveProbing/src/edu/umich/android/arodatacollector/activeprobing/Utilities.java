@@ -24,6 +24,8 @@ public class Utilities {
 		for(int i = 1; i <= len; i++){
 			sb.append((char)('a' + ran.nextInt(26)));
 		}
+		sb.setCharAt(0, '0');
+		sb.setCharAt(sb.length()-1, '1');
 		return sb.toString();
 	}
 	

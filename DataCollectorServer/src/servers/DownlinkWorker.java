@@ -24,14 +24,16 @@ public class DownlinkWorker extends Thread {
 
 			long start = System.currentTimeMillis();
 			long end = System.currentTimeMillis();
+			long cur = System.currentTimeMillis();
 			int batch = 0;
-			while(end - start < Definition.DURATION_IPERF_MILLISECONDS) {
+			while(end - start < Definition.DURATION_IPERF_MILLISECONDS && cur - start < Definition.DURATION_IPERF_MILLISECONDS) {
 				pw.println(Utilities.genRandomString(Definition.THROUGHPUT_DOWN_SEGMENT_SIZE)); //2600 larger than MTU
 				pw.flush();
 				batch++;
 				if(batch % 50 == 0){
 					end = System.currentTimeMillis();					
 				}
+				cur = System.currentTimeMillis();
 			}
 			pw.close();
 			client.close();

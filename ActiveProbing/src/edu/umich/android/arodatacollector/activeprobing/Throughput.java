@@ -13,9 +13,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import android.util.Log;
+
 public class Throughput {
 	private double[] tps_result;
 	public int size = 0;
+	public int totalSendSize = 0; // uplink accumulative data
+	public int totalRevSize = 0;  // downlink accumulative data
 	public long testStartTime = 0; //test start time, used to determine slow start period
 	public long startTime = 0; //start time of this period to calculate throughput
 	public final static long SAMPLE_PERIOD = 1000; 
@@ -27,6 +31,8 @@ public class Throughput {
 	}
 	
 	public void runTest(boolean isDown) {
+		totalRevSize = 0;
+		totalSendSize = 0;
 		String type;
 		if (isDown) {
 			downlink();
@@ -58,11 +64,20 @@ public class Throughput {
 		}
 		try {
 			int read_bytes = 0;
+			Log.d("BWTest", "Before downlink bandwidth test");
+			String str;
 			do {
-				String str = br.readLine();
+				str = br.readLine();
 				read_bytes = str.length();
 				updateSize(str.length());
-			} while (read_bytes >= 0);
+				totalRevSize += read_bytes;
+			} while (str != null && totalRevSize < Definition.DOWN_DATA_LIMIT_BYTE);
+			Log.d("BWTest", "Finish downlink bandwidth test");
+			if (totalRevSize >= Definition.DOWN_DATA_LIMIT_BYTE) {
+				Log.d("BWTest", "Detect downlink exceeding limitation");
+			}
+			else
+				Log.d("BWTest", "Total download data is " + (double)totalRevSize/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
 			br.close();
 			tcpSocket.close();
 		} catch (Exception e) {
@@ -97,8 +112,15 @@ public class Throughput {
 				pw.println(Utilities.genRandomString(Definition.THROUGHPUT_UP_SEGMENT_SIZE));
 				pw.flush();
 				endTime = System.currentTimeMillis();
-			} while ((endTime - startTime) < Definition.TP_DURATION_IN_MILLI);
-
+				totalSendSize += Definition.THROUGHPUT_UP_SEGMENT_SIZE;
+			} while ((endTime - startTime) < Definition.TP_DURATION_IN_MILLI && totalSendSize < Definition.UP_DATA_LIMIT_BYTE);
+			
+			if (totalSendSize >= Definition.UP_DATA_LIMIT_BYTE) {
+				Log.d("BWTest", "Detect uplink exceeding limitation");
+			}
+			else
+				Log.d("BWTest", "Total upload data is " + (double)totalSendSize/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
+			
 			pw.println(Definition.UPLINK_FINISH_MSG);
 			String str = br.readLine();
 			String [] tps_result_str = str.split("#");

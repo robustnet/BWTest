@@ -14,10 +14,10 @@ public class NewTestThread extends Thread {
 	public void run() {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		String nowStr = dateFormat.format(new Date()); 
-		Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
+		/*Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
 		RTT rtt = new RTT();
 		rtt.runTest();
-		nowStr = dateFormat.format(new Date());
+		nowStr = dateFormat.format(new Date());*/
 		Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
 		Throughput tps_down = new Throughput();
 		tps_down.runTest(true);

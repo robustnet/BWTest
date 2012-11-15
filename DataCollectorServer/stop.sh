@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd run
 for i in Downlink Uplink
 do
