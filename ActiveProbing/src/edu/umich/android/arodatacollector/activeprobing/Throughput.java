@@ -66,15 +66,14 @@ public class Throughput {
 			int read_bytes = 0;
 			Log.d("BWTest", "Before downlink bandwidth test");
 			String str;
-			do {
-				str = br.readLine();
+			while ((str = br.readLine()) != null && totalRevSize < Definition.DOWN_DATA_LIMIT_BYTE){
 				read_bytes = str.length();
 				updateSize(str.length());
 				totalRevSize += read_bytes;
-			} while (str != null && totalRevSize < Definition.DOWN_DATA_LIMIT_BYTE);
+			} 
 			Log.d("BWTest", "Finish downlink bandwidth test");
 			if (totalRevSize >= Definition.DOWN_DATA_LIMIT_BYTE) {
-				Log.d("BWTest", "Detect downlink exceeding limitation");
+				Log.d("BWTest", "Detect downlink exceeding limitation " + (double)Definition.DOWN_DATA_LIMIT_BYTE/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
 			}
 			else
 				Log.d("BWTest", "Total download data is " + (double)totalRevSize/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
@@ -116,7 +115,7 @@ public class Throughput {
 			} while ((endTime - startTime) < Definition.TP_DURATION_IN_MILLI && totalSendSize < Definition.UP_DATA_LIMIT_BYTE);
 			
 			if (totalSendSize >= Definition.UP_DATA_LIMIT_BYTE) {
-				Log.d("BWTest", "Detect uplink exceeding limitation");
+				Log.d("BWTest", "Detect uplink exceeding limitation " + (double)Definition.UP_DATA_LIMIT_BYTE/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
 			}
 			else
 				Log.d("BWTest", "Total upload data is " + (double)totalSendSize/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
