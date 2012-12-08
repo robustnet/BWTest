@@ -18,15 +18,20 @@ import java.util.Random;
 import android.os.Environment;
 
 public class Utilities {
+	public static Random ran = new Random();
 	public static String genRandomString(int len){
 		StringBuilder sb = new StringBuilder("");
-		Random ran = new Random();
 		for(int i = 1; i <= len; i++){
 			sb.append((char)('a' + ran.nextInt(26)));
 		}
 		sb.setCharAt(0, '0');
 		sb.setCharAt(sb.length()-1, '1');
 		return sb.toString();
+	}
+	
+	public static byte[] genRandomByte(byte[] byteArray) {
+		ran.nextBytes(byteArray);
+		return byteArray;
 	}
 	
 	public static double getMax(double[] a){  

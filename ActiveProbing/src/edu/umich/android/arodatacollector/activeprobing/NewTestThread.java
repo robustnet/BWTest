@@ -18,9 +18,9 @@ public class NewTestThread extends Thread {
 		RTT rtt = new RTT();
 		rtt.runTest();
 		nowStr = dateFormat.format(new Date());*/
-		Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
+		/*Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
 		Throughput tps_down = new Throughput();
-		tps_down.runTest(true);
+		tps_down.runTest(true);*/
 		nowStr = dateFormat.format(new Date());
 		Utilities.writeToSDCard(nowStr + "\n", Definition.RESULT_FILENAME);
 		Throughput tps_up = new Throughput();

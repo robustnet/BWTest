@@ -7,11 +7,14 @@
 package edu.umich.android.arodatacollector.activeprobing;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Arrays;
 
 import android.util.Log;
 
@@ -87,14 +90,18 @@ public class Throughput {
 	
 	private void uplink() {
 		Socket tcpSocket = null;
-		PrintWriter pw = null;
-		BufferedReader br = null;
+		// PrintWriter pw = null;
+		// BufferedReader br = null;
+		InputStream is = null;
+		OutputStream os = null;
 		try {
 			tcpSocket = new Socket();
 			SocketAddress remoteAddr = new InetSocketAddress(Definition.SERVER_NAME, Definition.PORT_UPLINK);
 			tcpSocket.connect(remoteAddr, Definition.TCP_TIMEOUT_IN_MILLI);
-			pw = new PrintWriter(tcpSocket.getOutputStream(), true);
-			br = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+			// pw = new PrintWriter(tcpSocket.getOutputStream(), true);
+			os = tcpSocket.getOutputStream();
+			// br = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+			is = tcpSocket.getInputStream();
 			tcpSocket.setSoTimeout(Definition.TCP_TIMEOUT_IN_MILLI);
 			tcpSocket.setTcpNoDelay(true);
 		} catch (Exception e){
@@ -106,10 +113,14 @@ public class Throughput {
 		long endTime = System.currentTimeMillis();
 
 		//Test lasts 16 seconds - Junxian
+		byte[] buffer = new byte[Definition.THROUGHPUT_UP_SEGMENT_SIZE];
 		try {
 			do {
-				pw.println(Utilities.genRandomString(Definition.THROUGHPUT_UP_SEGMENT_SIZE));
-				pw.flush();
+				buffer = Utilities.genRandomString(Definition.THROUGHPUT_UP_SEGMENT_SIZE).getBytes();
+				os.write(buffer);
+				os.flush();
+				//pw.println(Utilities.genRandomString(Definition.THROUGHPUT_UP_SEGMENT_SIZE));
+				//pw.flush();
 				endTime = System.currentTimeMillis();
 				totalSendSize += Definition.THROUGHPUT_UP_SEGMENT_SIZE;
 			} while ((endTime - startTime) < Definition.TP_DURATION_IN_MILLI && totalSendSize < Definition.UP_DATA_LIMIT_BYTE);
@@ -119,17 +130,32 @@ public class Throughput {
 			}
 			else
 				Log.d("BWTest", "Total upload data is " + (double)totalSendSize/(Math.pow(2, 10)*Math.pow(2, 10)) + " MB");
-			
-			pw.println(Definition.UPLINK_FINISH_MSG);
-			String str = br.readLine();
-			String [] tps_result_str = str.split("#");
+			byte[] lastbuffer = Definition.FINISH_MSG.getBytes();
+			os.write(lastbuffer);
+			os.flush();
+			//pw.println(Definition.UPLINK_FINISH_MSG);
+			// String str = br.readLine();
+			int resultLen = is.read(buffer);
+			Log.d("BWTest", "Last message length is " + resultLen);
+			// convert byte into string
+			byte[] convertResult = new byte[resultLen];
+			for (int i = 0; i < resultLen; i++) {
+				convertResult[i] = buffer[i];
+			}
+			String recvResult = new String(convertResult);
+			Log.d("BWTest", "Uplink result is " + recvResult.toString());
+			String [] tps_result_str = recvResult.toString().split("#");
 			for (int i = 0; i < tps_result_str.length; i++) {
 				double throughput = Double.valueOf(tps_result_str[i]);
+				if (throughput == 0)
+					continue;
 				tps_result = Utilities.pushResult(tps_result, throughput);
 			}
 			
-			pw.close();
-			br.close();
+			// pw.close();
+			// br.close();
+			os.close();
+			is.close();
 			tcpSocket.close();
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -2,9 +2,13 @@ package servers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
@@ -32,19 +36,28 @@ public class UplinkWorker extends Thread {
 			client.setSoTimeout(Definition.RECV_TIMEOUT);
 			client.setTcpNoDelay(true);
 
-			PrintWriter pw = new PrintWriter(client.getOutputStream(), true);
-			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			// PrintWriter pw = new PrintWriter(client.getOutputStream(), true);
+			// BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			InputStream is = client.getInputStream();
+			OutputStream os = client.getOutputStream();
 			SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyyMMdd:HH:mm:ss:SSS");
 			long threadId = this.getId();
 			String startDate = sDateFormat.format(new Date()).toString();
 			System.out.println("[" + startDate + "]" + " Uplink worker <" + threadId + "> Thread starts");
 
+			byte[] buffer = new byte[Definition.THROUGHPUT_UP_SEGMENT_SIZE];
+			int readLen;
 			while (true) {
-				String str = br.readLine();
-				if (str != null) {
-					if (str.equals(Definition.UPLINK_FINISH_MSG))
+				// String str = br.readLine();
+				readLen = is.read(buffer);
+				System.out.println("Received " + readLen + " bytes");
+				if (readLen > 0) {
+					//if (str.equals(Definition.FINISH_MSG))
+						//break;
+					if (Utilities.findLastMSGFromByteArray(buffer, readLen) != -1) {
 						break;
-					updateSize(str.length());
+					}
+					updateSize(readLen);
 				}
 				else break;
 			}
@@ -54,12 +67,17 @@ public class UplinkWorker extends Thread {
 				for (int i = 0; i < tps_result.length - 1; i++)
 					result += tps_result[i] + "#";
 				result += tps_result[tps_result.length - 1];
-				pw.println(result);
-				pw.flush();
+				// pw.println(result);
+				// pw.flush();
+				System.out.println("Uplink result is " + result);
+				os.write(result.getBytes());
+				os.flush();
 			}			
 				
-			pw.close();
-			br.close();
+			// pw.close();
+			is.close();
+			// br.close();
+			os.close();
 			client.close();
 			String endDate = sDateFormat.format(new Date()).toString();
 			System.out.println("[" + endDate + "]" + " Uplink worker <" + threadId + "> Thread ends");

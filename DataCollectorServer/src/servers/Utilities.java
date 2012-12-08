@@ -4,6 +4,24 @@ import java.util.Random;
 import java.text.DecimalFormat;
 
 public class Utilities {
+	public static int findLastMSGFromByteArray(byte[] array, int range) {
+		byte[] compareMSG = Definition.FINISH_MSG.getBytes();
+		boolean findMSG;
+		for (int i = 0; i < range - compareMSG.length + 1; i++) {
+			// TODO: only compare first byte right now
+			findMSG = true;
+			for (int j = 0; j < compareMSG.length; j++) {
+				if (compareMSG[j] != array[i+j]) {
+					findMSG = false;
+					break;
+				}
+			}
+			if (findMSG)
+				return i;
+		}
+		return -1;
+	}
+	
 	public static String genRandomString(int len){
 		StringBuilder sb = new StringBuilder("");
 		Random ran = new Random();
